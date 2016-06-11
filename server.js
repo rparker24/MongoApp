@@ -46,7 +46,7 @@ app.get('/scrape', function(req, res) {
 
 			var entry = new Article (result);
 
-      entry.insert(function(err, doc) {
+      entry.save(function(err, doc) {
         if (err) {
           console.log(err);
         } else {
@@ -83,12 +83,12 @@ app.get('/articles/:id', function(req, res) {
 app.post('/articles/:id', function(req, res) {
 	var newNote = new Note(req.body);
 
-	newNote.insert(function(err, doc) {
+	newNote.save(function(err, doc) {
 		if (err) {
 			console.log(err);
 		} else {
 			Article.findOneAndUpdate({'_id': req.params.id},
-			{'note': doc._id});
+			{'note': doc._id})
 			.exec(function(err, doc) {
 				if (err) {
 					console.log(err);
