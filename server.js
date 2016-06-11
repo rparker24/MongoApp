@@ -1,10 +1,12 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+var logger = require('morgan');
 var request = require('request');
 var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 
+app.use(logger('dev'));
 app.use(bodyParser.urlencoded({
 	extended: false
 }));
@@ -34,12 +36,13 @@ app.get('/scrape', function(req, res) {
   request('https://arstechnica.com', function (error, response, html) {
 
     var $ = cheerio.load(html);
-    var result = [];
     $('h1.heading').each(function(i, element){
 
-      var title = $(this).text();
-      var link = $(element).parent().attr('href');
-      var excerpt = $(this).parent().siblings('p.excerpt').text();
+			var result = {};
+
+      result.title = $(this).text();
+      result.link = $(this).parent().attr('href');
+    	result.excerpt = $(this).parent().siblings('p.excerpt').text();
 
 			var entry = new Article (result);
 
@@ -56,25 +59,25 @@ app.get('/scrape', function(req, res) {
 });
 
 app.get('/articles', function(req, res) {
-  db.articles.find({}, function(err, found) {
+  Article.find({}, function(err, doc) {
 		if (err) {
 			console.log(err);
 		} else {
-			res.json(found);
+			res.json(doc);
 		}
 	});
 });
 
 app.get('/articles/:id', function(req, res) {
 	Article.findOne({'_id': req.params.id})
-		.populate('note')
-		.exec(function(err, doc) {
-			if (err) {
-				console.log(err);
-			} else {
-				res.json(doc);
-			}
-		});
+	.populate('note')
+	.exec(function(err, doc) {
+		if (err) {
+			console.log(err);
+		} else {
+			res.json(doc);
+		}
+	});
 });
 
 app.post('/articles/:id', function(req, res) {
